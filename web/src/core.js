@@ -612,7 +612,7 @@ export function useWide() {
    空のままなら、画面にボタンは出ない。
    ============================================================ */
 
-export const FEEDBACK_URL = "";
+export const FEEDBACK_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfSgPZDJ6Ywhz14p5dYqbrXtjGU2qPVGYioPQYMOePacgOADA/viewform?usp=header";
 
 /* 端末や画面の情報を添えて開く。
    どの環境で起きた不具合かが分かり、切り分けが早くなる。 */
