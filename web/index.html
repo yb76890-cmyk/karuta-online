@@ -4,10 +4,58 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#E3DBC6" />
-    <title>日本史かるた</title>
+
+    <title>日本史かるた — オンラインで遊べる歴史かるた</title>
+    <meta
+      name="description"
+      content="読み札を聞いて、当てはまる人物や合戦の札を取り合う日本史かるた。札は223枚。ひとりでコンピュータと、1台の画面を囲んで、離れた場所から2〜4人で。登録不要、無料。"
+    />
+    <meta name="keywords" content="日本史,かるた,歴史,ゲーム,オンライン対戦,人物,合戦,学習,無料" />
+    <link rel="canonical" href="https://resonant-parfait-fef6d1.netlify.app/" />
+
+    <!-- LINEやSNSで送ったときの見え方 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="日本史かるた" />
+    <meta property="og:title" content="日本史かるた — オンラインで遊べる歴史かるた" />
+    <meta
+      property="og:description"
+      content="読み札を聞いて、人物や合戦の札を取り合う。223枚の札から出題。ひとりでも、みんなでも。登録不要、無料。"
+    />
+    <meta property="og:url" content="https://resonant-parfait-fef6d1.netlify.app/" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="日本史かるた" />
+    <meta name="twitter:description" content="読み札を聞いて、人物や合戦の札を取り合う。223枚の札から出題。登録不要、無料。" />
+
+    <!-- 検索結果での見え方を補う情報 -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "日本史かるた",
+        "description": "読み札を聞いて、当てはまる人物や合戦の札を取り合うかるたゲーム。223枚の札から出題。ひとり用、1台での対戦、オンライン対戦に対応。",
+        "inLanguage": "ja",
+        "genre": ["かるた", "教育", "クイズ"],
+        "playMode": ["SinglePlayer", "MultiPlayer"],
+        "applicationCategory": "Game",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- 画面が動く前でも中身が読み取れるようにしておく -->
+    <noscript>
+      <h1>日本史かるた</h1>
+      <p>
+        読み札を聞いて、当てはまる人物や合戦の札を取り合うかるたです。札は223枚。古代から近代まで、人物と合戦を扱います。
+        ひとりでコンピュータと対戦、1台の画面を囲んで2〜4人、離れた場所からのオンライン対戦に対応しています。
+        遊ぶにはブラウザのJavaScriptを有効にしてください。
+      </p>
+    </noscript>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
