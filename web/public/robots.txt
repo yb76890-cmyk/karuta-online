@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://resonant-parfait-fef6d1.netlify.app/sitemap.xml
