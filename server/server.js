@@ -133,11 +133,12 @@ function checkMemoReady(room) {
 
 function openRound(room) {
   clearTimers(room);
-  if (room.board.length === 0) return finish(room);
+  const live = room.board.filter((c) => !c.taken); // 取られていない札
+  if (live.length === 0) return finish(room);
 
   room.phase = "round";
   room.roundId += 1;
-  room.target = room.board[Math.floor(Math.random() * room.board.length)];
+  room.target = live[Math.floor(Math.random() * live.length)];
   room.grabs = [];
   room.fouled = new Set();
 
@@ -146,7 +147,7 @@ function openRound(room) {
     t: "round",
     roundId: room.roundId,
     clue: room.target.c,
-    remaining: room.board.length,
+    remaining: room.board.filter((c) => !c.taken).length,
     lockFrac: room.lockFrac,
     players: roster(room),
   });
@@ -169,7 +170,8 @@ function settleRound(room) {
   }
 
   room.log.push({ card: room.target, winner: winner ? winner.playerId : null });
-  room.board = room.board.filter((c) => c.id !== room.target.id);
+  // 並びを保つため、消さずに取られた印だけを付ける
+  room.board = room.board.map((c) => (c.id === room.target.id ? { ...c, taken: true } : c));
 
   broadcast(room, {
     t: "result",
@@ -179,7 +181,7 @@ function settleRound(room) {
     order: correct.map((g) => ({ playerId: g.playerId, elapsed: Math.round(g.elapsed) })),
     fouls: room.grabs.filter((g) => !g.ok).map((g) => ({ playerId: g.playerId, cardId: g.cardId })),
     players: roster(room),
-    remaining: room.board.length,
+    remaining: room.board.filter((c) => !c.taken).length,
   });
 
   room.gapTimer = setTimeout(() => openRound(room), ROUND_GAP_MS);
@@ -267,8 +269,8 @@ wss.on("connection", (ws) => {
       const code = String(msg.room || "")
         .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
         .replace(/[^0-9]/g, "")
-        .slice(0, 6);
-      if (!code) return send(ws, { t: "error", msg: "部屋番号を入れてください" });
+        .slice(0, 4);
+      if (code.length !== 4) return send(ws, { t: "error", msg: "部屋番号は4桁で入れてください" });
 
       room = getRoom(code);
       if (room.players.length >= MAX_PLAYERS)
