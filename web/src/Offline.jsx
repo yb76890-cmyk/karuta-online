@@ -132,7 +132,8 @@ export default function Offline({ onExit }) {
   };
 
   const openRound = useCallback(
-    (cards) => {
+    (all) => {
+      const cards = all.filter((c) => !c.taken); // 取られていない札だけが対象
       if (cards.length === 0) {
         setTarget(null);
         setTaker(null);
@@ -148,7 +149,7 @@ export default function Offline({ onExit }) {
       plans.current =
         mode === "solo"
           ? rivals.map((r, idx) => {
-              const knows = Math.random() < r.know[t.l - 1];
+              const knows = Math.random() < r.know[t.l - 1] * (PACE[pace].knowMul || 1);
               const [lo, hi] = r.span;
               const frac = Math.max(lo + Math.random() * (hi - lo), floor);
               const decoy = cards.filter((c) => c.id !== t.id);
@@ -234,9 +235,9 @@ export default function Offline({ onExit }) {
   useEffect(() => {
     if (screen !== "play" || phase !== "resolved" || !target) return;
     const t = setTimeout(() => {
-      const rest = board.filter((c) => c.id !== target.id);
-      setBoard(rest);
-      openRound(rest);
+      const next = board.map((c) => (c.id === target.id ? { ...c, taken: true } : c));
+      setBoard(next);
+      openRound(next);
     }, 3000);
     return () => clearTimeout(t);
   }, [screen, phase, target, board, openRound]);
@@ -296,7 +297,7 @@ export default function Offline({ onExit }) {
   };
 
   const grab = (card) => {
-    if (!target) return;
+    if (!target || card.taken) return;
 
     if (mode === "local") {
       if (phase !== "picking" || !picker) return;
@@ -404,12 +405,14 @@ export default function Offline({ onExit }) {
                 tight={two}
                 label="卓に着く顔ぶれ"
                 hint={
-                  PACE[pace].lock > 0
+                  pace === "totemo"
+                    ? "相手は読み札が読み終わるまで手を出しません。自分はいつでも取れます。相手のお手つきも多くなります。"
+                    : PACE[pace].lock > 0
                     ? "読み札が半分まで進むまで札に触れません。相手も同じくらいまで待ちます。"
                     : "読み始めた瞬間から取れます。"
                 }
               >
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {Object.entries(PACE).map(([k, v]) => (
                     <button key={k} onClick={() => setPace(k)} style={choice(pace === k)}>
                       {v.label}
@@ -907,7 +910,9 @@ export default function Offline({ onExit }) {
   return (
     <Shell L={L} cap={mode === "local" ? Math.min(L.max, 640) : L.max}>
       <div className="flex" style={{ justifyContent: "space-between", alignItems: "center", padding: "12px 0 10px" }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, color: C.mute, letterSpacing: "0.14em" }}>残り {board.length}</span>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, color: C.mute, letterSpacing: "0.14em" }}>
+          残り {board.filter((c) => !c.taken).length}
+        </span>
         <button
           onClick={quit}
           style={{ background: "none", border: "none", color: C.mute, fontFamily: GOTHIC, fontSize: 12, cursor: "pointer" }}
@@ -1021,8 +1026,25 @@ export default function Offline({ onExit }) {
         }}
       >
         {board.map((c) => {
-          const isTarget = taker && taker.ok && c.id === target.id;
+          const isTarget = taker && taker.ok && target && c.id === target.id;
           const dim = phase === "resolved" && !isTarget;
+
+          // 取られた札は、同じ位置に跡地として残す。並びが動かない。
+          if (c.taken && !isTarget) {
+            return (
+              <div
+                key={c.id}
+                style={{
+                  border: "1px dashed " + C.rule,
+                  borderRadius: 2,
+                  minHeight: L.cardH,
+                  background: "transparent",
+                  opacity: 0.5,
+                }}
+              />
+            );
+          }
+
           return (
             <button
               key={c.id}
@@ -1036,11 +1058,12 @@ export default function Offline({ onExit }) {
                 boxShadow: dim ? "none" : isTarget ? C.shadowUp : C.shadow,
                 padding: "16px 4px",
                 fontFamily: MINCHO,
-                fontSize: 14,
-                letterSpacing: "0.04em",
+                fontSize: L.card,
+                fontWeight: 700,
+                letterSpacing: "0.03em",
                 lineHeight: 1.35,
-                cursor: canTap ? "pointer" : "default",
-                opacity: dim ? 0.22 : canTap ? 1 : 0.45,
+                cursor: youOut || held ? "default" : "pointer",
+                opacity: dim ? 0.22 : youOut ? 0.5 : held ? 0.42 : 1,
                 transition: reduce.current ? "none" : "opacity .25s, background .2s",
                 minHeight: L.cardH,
               }}

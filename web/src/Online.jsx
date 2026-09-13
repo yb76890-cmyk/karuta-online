@@ -106,7 +106,7 @@ export default function Online({ onExit }) {
 
   const connect = () => {
     if (!room.trim()) return setErr("部屋番号を入れてください");
-    if (room.trim().length < 3) return setErr("部屋番号は3桁以上で入れてください");
+    if (room.trim().length !== 4) return setErr("部屋番号は4桁で入れてください");
     setErr("");
     setStatus("接続中");
 
@@ -194,7 +194,7 @@ export default function Online({ onExit }) {
         setResult(m);
         setPlayers(m.players);
         setSettling(false);
-        setBoard((b) => b.filter((c) => c.id !== m.card.id));
+        setBoard((b) => b.map((c) => (c.id === m.card.id ? { ...c, taken: true } : c)));
         setStatus("結果");
         try {
           window.speechSynthesis && window.speechSynthesis.cancel();
@@ -262,7 +262,7 @@ export default function Online({ onExit }) {
   const again = () => sock.current && sock.current.send(JSON.stringify({ t: "again" }));
 
   const grab = (card) => {
-    if (status !== "対戦" || sent || !round) return;
+    if (status !== "対戦" || sent || !round || card.taken) return;
     const lockTicks = Math.ceil(round.clue.length * round.lockFrac);
     if (tick < lockTicks) return;
     const elapsed = performance.now() - t0.current;
@@ -285,7 +285,7 @@ export default function Online({ onExit }) {
           <Label>部屋番号</Label>
           <div className="flex" style={{ gap: 8, alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <Input value={room} onChange={setRoom} placeholder="1234" mono max={6} numeric />
+              <Input value={room} onChange={setRoom} placeholder="1234" mono max={4} numeric />
             </div>
             <button
               onClick={() => setRoom(String(Math.floor(1000 + Math.random() * 9000)))}
@@ -305,7 +305,7 @@ export default function Online({ onExit }) {
             </button>
           </div>
           <div style={{ fontFamily: GOTHIC, fontSize: 11.5, color: C.mute, lineHeight: 1.7, marginTop: -8, marginBottom: 16 }}>
-            数字4桁が目安。同じ番号を入れた人どうしで対戦します。
+            数字4桁。同じ番号を入れた人どうしで対戦します。
           </div>
           <Label>名前</Label>
           <Input value={name} onChange={setName} placeholder="ゲスト" max={8} />
@@ -694,7 +694,7 @@ export default function Online({ onExit }) {
   return (
     <Shell L={L}>
       <div className="flex" style={{ justifyContent: "space-between", alignItems: "center", padding: "14px 0 10px" }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, color: C.mute, letterSpacing: "0.14em" }}>残り {board.length}</span>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, color: C.mute, letterSpacing: "0.14em" }}>残り {board.filter((c) => !c.taken).length}</span>
         <div className="flex" style={{ gap: 14, alignItems: "center" }}>
           <QuitButton onClick={abort} confirm={confirmQuit} host={isHost} />
           <span style={{ fontFamily: MONO, fontSize: 11, color: C.mute }}>{room}</span>
@@ -829,11 +829,28 @@ function Grid({ board, onPick, disabled, hit, L }) {
     <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(" + size.cols + ", minmax(0, 1fr))" }}>
       {board.map((c) => {
         const isHit = hit && c.id === hit;
+
+        // 取られた札は同じ位置に跡地として残す。並びが動かない。
+        if (c.taken && !isHit) {
+          return (
+            <div
+              key={c.id}
+              style={{
+                border: "1px dashed " + C.rule,
+                borderRadius: 2,
+                minHeight: size.cardH,
+                background: "transparent",
+                opacity: 0.5,
+              }}
+            />
+          );
+        }
+
         return (
           <button
             key={c.id}
             onClick={() => onPick && onPick(c)}
-            disabled={disabled || !onPick}
+            disabled={disabled || !onPick || c.taken}
             style={{
               background: isHit ? C.shu : C.card,
               color: isHit ? C.onDark : C.ink,

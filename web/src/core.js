@@ -264,9 +264,16 @@ export const RANKS = {
 // やさしいときは上位の段位が卓に着かない
 // lock: 読み札のここまで進まないと札に触れない / floor: 相手もここより早くは取らない
 export const PACE = {
-  yasashii: { label: "やさしい", ranks: [1, 2, 3], lock: 0.5, floor: 0.64 },
-  futsuu: { label: "ふつう", ranks: [2, 4, 5], lock: 0, floor: 0 },
-  kibishii: { label: "きびしい", ranks: [4, 6, 7], lock: 0, floor: 0 },
+  totemo: {
+    label: "とても易しい",
+    ranks: [1, 2, 3],
+    lock: 0,        // 自分はいつでも取れる
+    floor: 1.05,    // 相手は読み終わるまで手を出さない
+    knowMul: 0.5,   // 知らない札が増える＝お手つきが増える
+  },
+  yasashii: { label: "やさしい", ranks: [1, 2, 3], lock: 0.5, floor: 0.64, knowMul: 1 },
+  futsuu: { label: "ふつう", ranks: [2, 4, 5], lock: 0, floor: 0, knowMul: 1 },
+  kibishii: { label: "きびしい", ranks: [4, 6, 7], lock: 0, floor: 0, knowMul: 1 },
 };
 
 /* ============================================================
@@ -612,7 +619,7 @@ export function useWide() {
    空のままなら、画面にボタンは出ない。
    ============================================================ */
 
-export const FEEDBACK_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfSgPZDJ6Ywhz14p5dYqbrXtjGU2qPVGYioPQYMOePacgOADA/viewform?usp=header";
+export const FEEDBACK_URL = "";
 
 /* 端末や画面の情報を添えて開く。
    どの環境で起きた不具合かが分かり、切り分けが早くなる。 */
